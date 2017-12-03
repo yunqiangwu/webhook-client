@@ -4,12 +4,12 @@ const serve = require('koa-static');
 const route = require('koa-route');
 const bodyParser = require('koa-bodyparser');
 
+let p ;
+
 export default function (args) {
 
   const PORT = args.port || process.env.PORT || 3000;
   const { cmder } = args;
-  
-
   const app = new Koa();
 
   app.use(bodyParser());
@@ -20,29 +20,28 @@ export default function (args) {
       // body = ctx.request.body;
 
     if(ctx.request.url === "/restart" ){
-      console.log("restart");  // Todo restart app server
-      cmder.stop();
-
-      // if(cmder.stop.isStoping()){
-      //   ctx.body = '{"msg": "服务器正在重启"}';
-      // }else{
-      //   ctx.body = '{"msg": "服务器重启"}';
-      //   await cmder.stop();
-      //   await cmder.start();
-      // }
-      ctx.body = '{"msg": "服务器重启"}';
+      if(cmder.stop.isStoping()){
+        ctx.body = '{"msg": "服务器正在重启"}';
+      }
+      else{
+        ctx.body = '{"msg": "服务器重启"}';
+        await cmder.stop();
+        p = cmder.start();
+      }
       return;
     }
 
-    // console.log(request,ctx.request.body);
-    let headers = JSON.parse(JSON.stringify(ctx.request.header).toLowerCase());
-    let gitEvent = headers['x-github-event']||headers['x-gitlab-event'];
-      gitEvent = gitEvent&&gitEvent.replace('hook','').trim();
+     if(ctx.request.url.startsWith("/hook") ){
+      let headers = JSON.parse(JSON.stringify(ctx.request.header).toLowerCase());
+      let gitEvent = headers['x-github-event']||headers['x-gitlab-event'];
+        gitEvent = gitEvent&&gitEvent.replace('hook','').trim();
 
-    if(gitEvent === 'push'){
-      await cmder.pull();
-    }
+      if(gitEvent === 'push'){
+        await cmder.pull();
+      }
 
+     }
+    
     await next();
 
   });

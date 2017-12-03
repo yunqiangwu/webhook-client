@@ -10,50 +10,44 @@ import isWindows from 'is-windows';
 const isWin = isWindows();
 
 const argv       = optimist
-      .boolean('cors')
       .argv;
 // console.log(argv);
 // process.exit(0);
 
 // var ifaces = os.networkInterfaces();
 
-if (argv.h || argv.help) {
-  console.log([
-    'usage: webhook-c [options]',
+function showHelp() {
+	 console.log([
+    'usage: webhook-c [options] --start-cmd "cmd"',
     '',
     'options:',
-    '  -p           Port to use [8080]',
-    '  -a           Address to use [0.0.0.0]',
-    '  -d           Show directory listings [true]',
-    '  -i           Display autoIndex [true]',
-    '  -g --gzip    Serve gzip files when possible [false]',
-    '  -e --ext     Default file extension if none supplied [none]',
-    '  -s --silent  Suppress log messages from output',
-    '  --cors[=headers]   Enable CORS via the "Access-Control-Allow-Origin" header',
-    '                     Optionally provide CORS headers list separated by commas',
-    '  -o [path]    Open browser window after starting the server',
-    '  -c           Cache time (max-age) in seconds [3600], e.g. -c10 for 10 seconds.',
-    '               To disable caching, use -c-1.',
-    '  -U --utc     Use UTC time format in log messages.',
-    '',
-    '  -P --proxy   Fallback proxy if the request cannot be resolved. e.g.: http://someurl.com',
-    '',
-    '  -S --ssl     Enable https.',
-    '  -C --cert    Path to ssl cert file (default: cert.pem).',
-    '  -K --key     Path to ssl key file (default: key.pem).',
-    '',
-    '  -r --robots  Respond to /robots.txt [User-agent: *\\nDisallow: /]',
-    '  --no-dotfiles  Do not show dotfiles',
-    '  -h --help    Print this list and exit.'
+    '  --start-cmd "exec"     应用启动运行命令，例如 "mvn spring-boot:run"、"npm start" 等  ,前后必须加上双引号，该参数必须填写',
+    '  --start-cmd "exec"     停止应用命令， 例如 "tomcat stop"、"ps -ef | grep java | kill -9"',
+    '  --cwd path             工作目录，默认当前目录',
+    '  --ph  host:port        跳板服务器的地址（域名端口）',
+    '  --p host               webhook 侦听的域名 默认 0.0.0.0',
+    '  --p port               webhook 侦听的端口 默认 80',
+    '  -h --help              Print this list and exit.',
+    
   ].join('\n'));
   process.exit();
 }
 
-var port = argv.p || parseInt(process.env.PORT, 10) || 4000,
-	cwdPath = argv['_'][0] || process.cwd(),
+if (argv.h || argv.help) {
+ showHelp();
+}
+
+const port = argv.p || parseInt(process.env.PORT, 10) || 4000,
+	cwdPath = argv.cwd || process.cwd(),
 	proxyPort = argv.pp || 80,
 	host = argv.a || '0.0.0.0',
+	serverStartCmd = argv['start-cmd'],
+	serverStopCmd = argv['stop-cmd'],
     proxyHost = argv.ph; // || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com'
+
+if(!serverStartCmd){
+	showHelp();
+}
 
 if (!shelljs.which('git')) {
   shelljs.echo('Sorry, this script requires git');
@@ -76,9 +70,6 @@ let repository = /.*\/([^\/]*).git$/.exec(projectNameGitUrl)[1];
 // process.exit();
 
 
-
-let serverStartCmd = 'yarn start';
-let serverStopCmd = 'echo stop server';
 let stopingPromise = null;
 
 
@@ -88,15 +79,14 @@ async function start() {
   	await stopingPromise;
   }
   p = fork(`${__dirname}/util/startAppServer`, [serverStartCmd]);
+  console.log("应用启动成功");
+  return p;
 }
 
 
 async function stop() {
-	p.kill('SIGINT');
-	return;
-
 	if(stopingPromise){
-		return;
+		return stopingPromise;
 	}
 	let curP = p;
 	serverStopCmd && shelljs.exec(serverStopCmd);
@@ -104,27 +94,32 @@ async function stop() {
 		return Promise.resolve({});
 	}else{
 		if(!stopingPromise){
-			curP.kill('SIGINT');
 			stopingPromise = new Promise((resolve,reject)=>{
-				curP.on('exit', function (a) {
-					setTimeout(()=>{
-						stopingPromise = null;
-						console.log("停止服务完成",a);
-						resolve(a);
-					},2000);
-			  	});
-			  	curP.on('error', function (err) {
-					reject(err)
+				if(isWin){
+					shelljs.exec("taskkill.exe /F /T /PID " + curP.pid);
+				}else{
+					shelljs.exec("kill -f -9 " + curP.pid);
+				}
+				setTimeout(()=>{
 					stopingPromise = null;
-					console.log("停止服务出错",err);
-			  	});
+					console.log("停止服务完成");
+					resolve();
+				},2000);
 			});
 		}
-		return stopingPromise
+		return Promise.resolve({});
 	}
 }
 
-stop.isStoping = () => !!stopingPromise;
+stop.isStoping = ()=>{
+	console.log(!!stopingPromise);
+	if(stopingPromise){
+		return true;
+	}else{
+		return false;
+	}
+}
+
 
 async function pull() {
   shelljs.exec(`git clean -f`);
@@ -133,18 +128,6 @@ async function pull() {
   shelljs.exec(`git checkout ${branch}`);
   shelljs.exec(`git pull origin ${branch} --force`);
 }
-
-
-
-
-process.on('SIGINT', function () {
-	fs.removeSync(tempDir);
-
-	program.runningCommand && program.runningCommand.kill('SIGKILL');
-	process.exit(0);
-});
-
-
 
 
 start();
@@ -174,4 +157,4 @@ if(proxyHost){
 
 
 
-console.log("OVER");
+console.log("webhook启动完成，控制台请访问： http://host:port/ctrl.html");

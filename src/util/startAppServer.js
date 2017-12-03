@@ -1,3 +1,2 @@
 import shelljs from 'shelljs';
-
-shelljs.exec(process.argv[2]);
+let app = shelljs.exec(process.argv[2]);
