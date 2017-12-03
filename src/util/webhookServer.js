@@ -21,13 +21,16 @@ export default function (args) {
 
     if(ctx.request.url === "/restart" ){
       console.log("restart");  // Todo restart app server
-      if(cmder.stop.isStoping()){
-        ctx.body = '{"msg": "服务器正在重启"}';
-      }else{
-        ctx.body = '{"msg": "服务器重启"}';
-        await cmder.stop();
-        cmder.start();
-      }
+      cmder.stop();
+
+      // if(cmder.stop.isStoping()){
+      //   ctx.body = '{"msg": "服务器正在重启"}';
+      // }else{
+      //   ctx.body = '{"msg": "服务器重启"}';
+      //   await cmder.stop();
+      //   await cmder.start();
+      // }
+      ctx.body = '{"msg": "服务器重启"}';
       return;
     }
 
@@ -37,7 +40,7 @@ export default function (args) {
       gitEvent = gitEvent&&gitEvent.replace('hook','').trim();
 
     if(gitEvent === 'push'){
-      cmder.pull();
+      await cmder.pull();
     }
 
     await next();

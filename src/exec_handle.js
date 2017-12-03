@@ -53,7 +53,7 @@ var port = argv.p || parseInt(process.env.PORT, 10) || 4000,
 	cwdPath = argv['_'][0] || process.cwd(),
 	proxyPort = argv.pp || 80,
 	host = argv.a || '0.0.0.0',
-    proxyHost = argv.ph || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com';
+    proxyHost = argv.ph; // || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com'
 
 if (!shelljs.which('git')) {
   shelljs.echo('Sorry, this script requires git');
@@ -77,41 +77,46 @@ let repository = /.*\/([^\/]*).git$/.exec(projectNameGitUrl)[1];
 
 
 
-let serverStartCmd = 'http-server -p 8080';
-let serverStopCmd = 'echo stop';
+let serverStartCmd = 'yarn start';
+let serverStopCmd = 'echo stop server';
 let stopingPromise = null;
-let isExiting = false;
+
 
 let p;
 async function start() {
-  if(isExiting){
-  	await stop();
+  if(stopingPromise){
+  	await stopingPromise;
   }
   p = fork(`${__dirname}/util/startAppServer`, [serverStartCmd]);
 }
 
 
-
 async function stop() {
-	serverStopCmd && shelljs.exec(serverStopCmd);
-	isExiting = true;
 	p.kill('SIGINT');
+	return;
+
+	if(stopingPromise){
+		return;
+	}
 	let curP = p;
+	serverStopCmd && shelljs.exec(serverStopCmd);
 	if(curP.killed){
-		isExiting = false; 
 		return Promise.resolve({});
 	}else{
 		if(!stopingPromise){
+			curP.kill('SIGINT');
 			stopingPromise = new Promise((resolve,reject)=>{
 				curP.on('exit', function (a) {
-					resolve(a);
-					stopingPromise = null;
-					isExiting = false;
+					setTimeout(()=>{
+						stopingPromise = null;
+						console.log("停止服务完成",a);
+						resolve(a);
+					},2000);
 			  	});
 			  	curP.on('error', function (err) {
 					reject(err)
 					stopingPromise = null;
-					isExiting = false;
+					console.log("停止服务出错",err);
 			  	});
 			});
 		}
@@ -119,7 +124,7 @@ async function stop() {
 	}
 }
 
-stop.isStoping = () => isExiting;
+stop.isStoping = () => !!stopingPromise;
 
 async function pull() {
   shelljs.exec(`git clean -f`);
@@ -156,15 +161,17 @@ webhookServer({
 	}
 });
 
+if(proxyHost){
+	websocketProxyServer({
+		hookPort: port,
+		proxyHost,
+		hookHost: host==='0.0.0.0' ? 'localhost' : host,
+		proxyPort,
+		branch,
+		repository,
+	});
+}
 
-websocketProxyServer({
-	hookPort: port,
-	proxyHost,
-	hookHost: host==='0.0.0.0' ? 'localhost' : host,
-	proxyPort,
-	branch,
-	repository,
-});
 
 
 console.log("OVER");
