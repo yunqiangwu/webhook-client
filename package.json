@@ -29,6 +29,14 @@
     "sinon": "*"
   },
   "dependencies": {
+    "is-windows": "^1.0.1",
+    "koa": "^2.4.1",
+    "koa-bodyparser": "^4.2.0",
+    "koa-route": "^3.2.0",
+    "koa-static": "^4.0.2",
+    "optimist": "^0.6.1",
+    "os": "^0.1.1",
+    "shelljs": "^0.7.8",
     "ws": "^3.3.2"
   },
   "bin": {
