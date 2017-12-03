@@ -8,6 +8,10 @@ let p ;
 
 export default function (args) {
 
+  const {
+    wechatCtl,
+  } = args;
+
   const PORT = args.port || process.env.PORT || 3000;
   const { cmder } = args;
   const app = new Koa();
@@ -39,7 +43,16 @@ export default function (args) {
       if(gitEvent === 'push'){
         await cmder.pull();
       }
+     }
 
+     if(wechatCtl && ctx.request.url.startsWith("/notice") ){
+        let msg = { 
+          url: ctx.request.url,
+          body: ctx.request.body,
+        };
+        msg = JSON.stringify(msg);
+        wechatCtl.sendMsg(msg);
+        return;
      }
     
     await next();

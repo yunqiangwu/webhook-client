@@ -5,6 +5,7 @@ import fs from 'fs';
 import { fork } from 'child_process';
 import websocketProxyServer from './util/websocketProxyServer';
 import webhookServer from './util/webhookServer';
+import wechatServer from './util/wechatServer';
 import isWindows from 'is-windows';
 
 const isWin = isWindows();
@@ -27,6 +28,7 @@ function showHelp() {
     '  --ph  host:port        跳板服务器的地址（域名端口）',
     '  --p host               webhook 侦听的域名 默认 0.0.0.0',
     '  --p port               webhook 侦听的端口 默认 80',
+    '  --wechat-to gNames      启动微信通知, GroupName,通知的人或群名称，可以有多个,以逗号分隔',
     '  -h --help              Print this list and exit.',
     
   ].join('\n'));
@@ -43,6 +45,7 @@ const port = argv.p || parseInt(process.env.PORT, 10) || 4000,
 	host = argv.a || '0.0.0.0',
 	serverStartCmd = argv['start-cmd'],
 	serverStopCmd = argv['stop-cmd'],
+	wechatTo = argv['wechat-to'],
     proxyHost = argv.ph; // || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com'
 
 if(!serverStartCmd){
@@ -132,6 +135,14 @@ async function pull() {
 
 start();
 
+let wechatCtl;
+
+
+if(wechatTo){
+	wechatCtl = wechatServer({
+		wechatTo,
+	});
+}
 
 webhookServer({
 	port,
@@ -141,7 +152,8 @@ webhookServer({
 		start,
 		stop,
 		pull,
-	}
+	},
+	wechatCtl,
 });
 
 if(proxyHost){
