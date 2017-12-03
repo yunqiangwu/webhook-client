@@ -2,7 +2,7 @@
 const Wechat = require('wechat4u')
 const qrcode = require('qrcode-terminal')
 const fs = require('fs')
-const request = require('request')
+// const request = require('request')
 const isWindows = require('is-windows');
 
 
@@ -257,19 +257,18 @@ export default function (args) {
 
   return {
     sendMsg: (msg)=>{
-      if(!isLogined){
+      if(!isLogined || !msg){
         return;
       }
-
+      console.log(msg,wechatTo)
       wechatTo.split(',').forEach((ToUserName)=>{
           ToUserName = ToUserName&&ToUserName.trim();
           if(!ToUserName){
             return;
           }
-          ToUserName = bot.contacts.find(item=>{
-            item.NickName === ToUserName;
+          ToUserName = Object.keys(bot.contacts).find(item=>{
+            return bot.contacts[item].NickName === ToUserName;
           })
-          ToUserName = ToUserName&&ToUserName.UserName;
           if(!ToUserName){
             return;
           }

@@ -10,6 +10,8 @@ export default function (args) {
 
   const {
     wechatCtl,
+    host,
+    branch,
   } = args;
 
   const PORT = args.port || process.env.PORT || 3000;
@@ -32,6 +34,12 @@ export default function (args) {
         await cmder.stop();
         p = cmder.start();
       }
+
+      if(wechatCtl){
+        let msg =ctx.body;
+        wechatCtl.sendMsg(msg);
+     }
+
       return;
     }
 
@@ -41,17 +49,43 @@ export default function (args) {
         gitEvent = gitEvent&&gitEvent.replace('hook','').trim();
 
       if(gitEvent === 'push'){
-        await cmder.pull();
+         if(wechatCtl){
+            let pushData = ctx.request.body.payload ? JSON.parse(ctx.request.body.payload) : ctx.request.body;
+            let commitObj = pushData.head_commit || pushData.commits[0];
+            let pusher = commitObj.author.name;
+            let commitMsg =  commitObj.message;
+            let diffMsg = '';
+            if(commitObj.added && commitObj.added.length){
+              diffMsg += "添加文件：" + commitObj.added.join(' , ')+'\n';
+            }
+            if(commitObj.modified && commitObj.modified.length){
+              diffMsg += "修改文件：" + commitObj.modified.join(' , ')+'\n';
+            }
+            if(commitObj.commitMsg && commitObj.commitMsg.length){
+              diffMsg += "删除文件：" + commitObj.commitMsg.join(' , ')+'\n';
+            }
+
+            let msg =`${pusher} 提交修改到 ${branch} 分支，文件变动如下
+
+${diffMsg}
+提交的注释：${commitMsg}
+
+服务器已经自动pull了代码。
+如果此次修改不支持热更新，可以打开 http://${host==='0.0.0.0'?('{服务器ip}'):(host)}:${PORT}/ctrl.html 重启服务
+            `;
+            wechatCtl.sendMsg(msg);
+         }
+         cmder.pull();
       }
+      ctx.body = '{"msg": "client收到hook请求"}';
+      return;
      }
 
-     if(wechatCtl && ctx.request.url.startsWith("/notice") ){
-        let msg = { 
-          url: ctx.request.url,
-          body: ctx.request.body,
-        };
+     if(wechatCtl && ctx.request.url=="/notice" ){
+        let msg =ctx.request.body;
         msg = JSON.stringify(msg);
         wechatCtl.sendMsg(msg);
+        ctx.body = '{"msg": "消息转发微信"}';
         return;
      }
     

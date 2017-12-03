@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const http = require('http');
+const qs = require('querystring'); 
 
 
 export default function (args) {
@@ -43,9 +44,8 @@ export default function (args) {
 	});
 
 	ws.on('message', function incoming(data) {
-	  // console.log(data);
 	  	data = JSON.parse(data);
-	  	let bodyData = data.body?JSON.stringify(data.body):'';
+	  	let bodyData = data.body? qs.stringify(data.body):'';
 	  	let headers = data.request.header||{};
 	  	headers['Content-Length'] = Buffer.byteLength(bodyData);
 
@@ -54,7 +54,7 @@ export default function (args) {
 		   hostname: hookHost,  
 		   port: hookPort,  
 		   path: data.request.url,  
-		   method: data.method,  
+		   method: data.request.method,  
 		}  
 		var req=http.request(options);  
 		req.on('error',function(err){  

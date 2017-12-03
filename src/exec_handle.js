@@ -26,7 +26,7 @@ function showHelp() {
     '  --start-cmd "exec"     停止应用命令， 例如 "tomcat stop"、"ps -ef | grep java | kill -9"',
     '  --cwd path             工作目录，默认当前目录',
     '  --ph  host:port        跳板服务器的地址（域名端口）',
-    '  --p host               webhook 侦听的域名 默认 0.0.0.0',
+    '  --a host               webhook 侦听的域名 默认 0.0.0.0',
     '  --p port               webhook 侦听的端口 默认 80',
     '  --wechat-to gNames      启动微信通知, GroupName,通知的人或群名称，可以有多个,以逗号分隔',
     '  -h --help              Print this list and exit.',
@@ -98,11 +98,14 @@ async function stop() {
 	}else{
 		if(!stopingPromise){
 			stopingPromise = new Promise((resolve,reject)=>{
-				if(isWin){
-					shelljs.exec("taskkill.exe /F /T /PID " + curP.pid);
-				}else{
-					shelljs.exec("kill -f -9 " + curP.pid);
+				if(curP.connected){
+					if(isWin){
+						shelljs.exec("taskkill.exe /F /T /PID " + curP.pid);
+					}else{
+						shelljs.exec("kill -f -9 " + curP.pid);
+					}
 				}
+
 				setTimeout(()=>{
 					stopingPromise = null;
 					console.log("停止服务完成");
@@ -126,7 +129,7 @@ stop.isStoping = ()=>{
 
 async function pull() {
   shelljs.exec(`git clean -f`);
-  shelljs.exec(`git fetch --all`);
+  // shelljs.exec(`git fetch --all`);
   shelljs.exec(`git reset --hard origin/${branch}`);
   shelljs.exec(`git checkout ${branch}`);
   shelljs.exec(`git pull origin ${branch} --force`);
@@ -145,6 +148,7 @@ if(wechatTo){
 }
 
 webhookServer({
+	host,
 	port,
 	proxyPort,
 	proxyHost,
@@ -154,6 +158,7 @@ webhookServer({
 		pull,
 	},
 	wechatCtl,
+	branch,
 });
 
 if(proxyHost){
