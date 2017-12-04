@@ -23,12 +23,12 @@ function showHelp() {
     '',
     'options:',
     '  --start-cmd "exec"     应用启动运行命令，例如 "mvn spring-boot:run"、"npm start" 等  ,前后必须加上双引号，该参数必须填写',
-    '  --stop-cmd "exec"     停止应用命令， 例如 "tomcat stop"、"ps -ef | grep java | kill -9"',
+    '  --stop-cmd "exec"      停止应用命令， 例如 "tomcat stop"、"ps -ef | grep java | kill -9"',
     '  --cwd path             工作目录，默认当前目录',
-    '  --ph  host:port        跳板服务器的地址（域名端口）',
+    '  --pa  wsAddress        跳板服务器的地址（ws(s)://域名:端口） websocket 地址',
     '  --a host               webhook 侦听的域名 默认 0.0.0.0',
     '  --p port               webhook 侦听的端口 默认 80',
-    '  --wechat-to gNames      启动微信通知, GroupName,通知的人或群名称，可以有多个,以逗号分隔',
+    '  --wechat-to gNames     启动微信通知, gNames,通知的人或群名称，可以有多个,以逗号分隔',
     '  -h --help              Print this list and exit.',
     
   ].join('\n'));
@@ -41,12 +41,11 @@ if (argv.h || argv.help) {
 
 const port = argv.p || parseInt(process.env.PORT, 10) || 4000,
 	cwdPath = argv.cwd || process.cwd(),
-	proxyPort = argv.pp || 80,
 	host = argv.a || '0.0.0.0',
 	serverStartCmd = argv['start-cmd'],
 	serverStopCmd = argv['stop-cmd'],
 	wechatTo = argv['wechat-to'],
-    proxyHost = argv.ph; // || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com'
+    proxyAddress = argv.pa; // || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com'
 
 if(!serverStartCmd){
 	showHelp();
@@ -150,8 +149,7 @@ if(wechatTo){
 webhookServer({
 	host,
 	port,
-	proxyPort,
-	proxyHost,
+	proxyAddress,
 	cmder: {
 		start,
 		stop,
@@ -161,12 +159,11 @@ webhookServer({
 	branch,
 });
 
-if(proxyHost){
+if(proxyAddress){
 	websocketProxyServer({
 		hookPort: port,
-		proxyHost,
+		proxyAddress,
 		hookHost: host==='0.0.0.0' ? 'localhost' : host,
-		proxyPort,
 		branch,
 		repository,
 	});

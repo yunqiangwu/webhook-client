@@ -1,26 +1,19 @@
 const WebSocket = require('ws');
-const http = require('http');
+const axios = require('axios');
 const qs = require('querystring'); 
 
 
 export default function (args) {
 
 	let {
-		proxyHost,
-		proxyPort,
 		hookPort,
+		proxyAddress,
 		hookHost,
 		branch,
 		repository,
 	} = args;
 
-	if(/:\d+$/.test(proxyHost)){
-		proxyPort=/:(\d+)$/.exec(proxyHost)[1];
-		proxyHost=proxyHost.replace(/:\d+$/, '');
-	}
-
-
-	const ws = new WebSocket(`ws://${proxyHost}${proxyPort?(':'+proxyPort):''}`);
+	const ws = new WebSocket(proxyAddress);
 
 	ws.on('open', function open() {
 	  console.log('连接服务器成功');
@@ -45,25 +38,10 @@ export default function (args) {
 
 	ws.on('message', function incoming(data) {
 	  	data = JSON.parse(data);
-	  	let bodyData = data.body? qs.stringify(data.body):'';
 	  	let headers = data.request.header||{};
-	  	headers['Content-Length'] = Buffer.byteLength(bodyData);
-
-	  	var options={  
-		   headers,
-		   hostname: hookHost,  
-		   port: hookPort,  
-		   path: data.request.url,  
-		   method: data.request.method,  
-		}  
-		var req=http.request(options);  
-		req.on('error',function(err){  
-		    console.error(err);  
-		});  
-		req.write(bodyData);  
-		req.end(); 
+		let url = `http://${hookHost}:${hookPort}${data.request.url}`
+		axios.post(url,data.body,{
+			headers: headers,
+		});
 	});
-
-
-
 }
