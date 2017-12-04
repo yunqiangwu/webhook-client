@@ -23,7 +23,7 @@ function showHelp() {
     '',
     'options:',
     '  --start-cmd "exec"     应用启动运行命令，例如 "mvn spring-boot:run"、"npm start" 等  ,前后必须加上双引号，该参数必须填写',
-    '  --start-cmd "exec"     停止应用命令， 例如 "tomcat stop"、"ps -ef | grep java | kill -9"',
+    '  --stop-cmd "exec"     停止应用命令， 例如 "tomcat stop"、"ps -ef | grep java | kill -9"',
     '  --cwd path             工作目录，默认当前目录',
     '  --ph  host:port        跳板服务器的地址（域名端口）',
     '  --a host               webhook 侦听的域名 默认 0.0.0.0',
