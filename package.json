@@ -1,7 +1,7 @@
 {
   "name": "webhook-client",
   "description": "auto pull and robot of weixin qq and  auto restart deploy server",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "main": "lib/index.js",
   "author": "yunqiangwu",
   "repository": "yunqiangwu/webhook-client",
@@ -29,6 +29,7 @@
     "sinon": "*"
   },
   "dependencies": {
+    "axios": "^0.17.1",
     "babel-polyfill": "^6.26.0",
     "is-windows": "^1.0.1",
     "koa": "^2.4.1",
