@@ -267,7 +267,7 @@ export default function (args) {
             return;
           }
           ToUserName = Object.keys(bot.contacts).find(item=>{
-            return bot.contacts[item].NickName === ToUserName;
+            return bot.contacts[item].NickName.indexOf(ToUserName)>=0;
           })
           if(!ToUserName){
             return;
