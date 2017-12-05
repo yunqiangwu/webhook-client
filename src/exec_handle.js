@@ -101,7 +101,7 @@ async function stop() {
 					if(isWin){
 						shelljs.exec("taskkill.exe /F /T /PID " + curP.pid);
 					}else{
-						shelljs.exec("kill -f -9 " + curP.pid);
+						shelljs.exec("kill -9 " + curP.pid);
 					}
 				}
 
