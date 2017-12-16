@@ -28,7 +28,7 @@ function showHelp() {
     '  --pa  wsAddress        跳板服务器的地址（ws(s)://域名:端口） websocket 地址',
     '  --a host               webhook 侦听的域名 默认 0.0.0.0',
     '  --p port               webhook 侦听的端口 默认 80',
-    '  --wechat-to gNames     启动微信通知, gNames,通知的人或群名称，可以有多个,以逗号分隔',
+    '  --wechat-server url    微信服务器地址 ',
     '  -h --help              Print this list and exit.',
     
   ].join('\n'));
@@ -44,7 +44,7 @@ const port = argv.p || parseInt(process.env.PORT, 10) || 4000,
 	host = argv.a || '0.0.0.0',
 	serverStartCmd = argv['start-cmd'],
 	serverStopCmd = argv['stop-cmd'],
-	wechatTo = argv['wechat-to'],
+	wechatServerUrl = argv['wechat-server'],
     proxyAddress = argv.pa; // || 'git-webhook-proxy-server-front-server.193b.starter-ca-central-1.openshiftapps.com'
 
 if(!serverStartCmd){
@@ -140,9 +140,9 @@ start();
 let wechatCtl;
 
 
-if(wechatTo){
+if(wechatServerUrl){
 	wechatCtl = wechatServer({
-		wechatTo,
+		wechatServerUrl,
 	});
 }
 
@@ -171,4 +171,4 @@ if(proxyAddress){
 
 
 
-console.log("webhook启动完成，控制台请访问： http://host:port/ctrl.html");
+console.log(`webhook启动完成，控制台请访问： http://${host}:${port}/ctrl.html`);

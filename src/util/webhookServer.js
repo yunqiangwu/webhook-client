@@ -5,6 +5,7 @@ const route = require('koa-route');
 const bodyParser = require('koa-bodyparser');
 
 let p ;
+let wechatTo = process.env.WECHAT_TO || 'Wayne';
 
 export default function (args) {
 
@@ -36,8 +37,8 @@ export default function (args) {
       }
 
       if(wechatCtl){
-        let msg =ctx.body;
-        wechatCtl.sendMsg(msg);
+        let msg = ctx.body;
+        wechatCtl.sendMsg(msg, wechatTo);
      }
 
       return;
@@ -47,7 +48,7 @@ export default function (args) {
       let headers = JSON.parse(JSON.stringify(ctx.request.header).toLowerCase());
       let gitEvent = headers['x-github-event']||headers['x-gitlab-event'];
         gitEvent = gitEvent&&gitEvent.replace('hook','').trim();
-
+        console.log(ctx.request.body);
       if(gitEvent === 'push'){
          if(wechatCtl){
             let pushData = ctx.request.body.payload ? JSON.parse(ctx.request.body.payload) : ctx.request.body;
@@ -73,7 +74,7 @@ ${diffMsg}
 服务器已经自动pull了代码。
 如果此次修改不支持热更新，可以打开 http://${host==='0.0.0.0'?('{服务器ip}'):(host)}:${PORT}/ctrl.html 重启服务
             `;
-            wechatCtl.sendMsg(msg);
+            wechatCtl.sendMsg(msg, wechatTo);
          }
          cmder.pull();
       }
