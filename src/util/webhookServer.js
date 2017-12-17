@@ -76,7 +76,7 @@ ${diffMsg}
 
 服务器已经自动pull了代码。
 预览地址: http://${host==='0.0.0.0'?('{服务器ip}'):(host)}
-如果此次修改不支持热更新，可以打开 http://${host==='0.0.0.0'?('{服务器ip}'):('ctrl.'+host)}:${PORT}/ctrl.html 重启服务
+如果此次修改不支持热更新，可以打开 http://${host==='0.0.0.0'?('{服务器ip}'):('ctrl.'+host)}/ctrl.html 重启服务
             `;
             wechatCtl.sendMsg(msg, wechatTo);
          }
