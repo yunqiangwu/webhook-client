@@ -33,7 +33,7 @@ export default function (args) {
       else{
         ctx.body = '{"msg": "服务器重启"}';
         await cmder.stop();
-        p = cmder.start();
+        p = await cmder.start();
         p.on('error',(message)=>{
             wechatCtl.sendMsg(message, wechatTo);
         });
