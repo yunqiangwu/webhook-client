@@ -39,7 +39,7 @@ if (argv.h || argv.help) {
  showHelp();
 }
 
-const port = argv.p || parseInt(process.env.PORT, 10) || 4000,
+const port = argv.p || parseInt(process.env.PORT, 10) || 8008,
 	cwdPath = argv.cwd || process.cwd(),
 	host = argv.a || '0.0.0.0',
 	serverStartCmd = argv['start-cmd'],
@@ -104,8 +104,10 @@ async function stop() {
 						shelljs.exec("kill -9 " + curP.pid);
 					}
 				}
-
 				setTimeout(()=>{
+					if(curP.connected){
+						curP.kill();
+					}
 					stopingPromise = null;
 					console.log("停止服务完成");
 					resolve();

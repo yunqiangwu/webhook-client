@@ -43,7 +43,7 @@ export default function (args) {
 		ws.on('message', function incoming(data) {
 		  	data = JSON.parse(data);
 		  	let headers = data.request.header||{};
-			let url = `http://${hookHost}:${hookPort}${data.request.url}`
+			let url = `http://127.0.0.1:${hookPort}${data.request.url}`
 			axios.post(url,data.body,{
 				headers: headers,
 			});

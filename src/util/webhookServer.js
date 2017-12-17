@@ -15,7 +15,7 @@ export default function (args) {
     branch,
   } = args;
 
-  const PORT = args.port || process.env.PORT || 3000;
+  const PORT = args.port || process.env.PORT || 8008;
   const { cmder } = args;
   const app = new Koa();
 
@@ -34,6 +34,9 @@ export default function (args) {
         ctx.body = '{"msg": "服务器重启"}';
         await cmder.stop();
         p = cmder.start();
+        p.on('error',(message)=>{
+            wechatCtl.sendMsg(message, wechatTo);
+        });
       }
 
       if(wechatCtl){
