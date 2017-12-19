@@ -3,6 +3,11 @@ const axios = require('axios');
 const qs = require('querystring'); 
 
 
+let hartboomTid = null;
+let hartboomSec = 60000;
+let errTryCount = 0;
+const errTryCountLen = 10;
+
 export default function (args) {
 
 	let {
@@ -32,13 +37,26 @@ export default function (args) {
 		ws.on('close', function outcoming(data) {
 		    // Broadcast to everyone else.
 		    console.log('连接断开，正在重新连接。。。');
+		    if(hartboomTid){
+				clearInterval(hartboomTid);
+				hartboomTid = null;
+			}
 		    setTimeout(start,1000);
 		    // start();
 		});
 
 		ws.on('error', function error(err) {
+			errTryCount++;
 		  console.log('连接服务器失败',err);
-		  process.exit(1);
+		  if(hartboomTid){
+			clearInterval(hartboomTid);
+			hartboomTid = null;
+		  }
+		  if(errTryCount<errTryCountLen){
+		  	setTimeout(start,1000);
+		  }else{
+		  	process.exit(1);
+		  }
 		});
 
 		ws.on('message', function incoming(data) {
@@ -48,7 +66,19 @@ export default function (args) {
 			axios.post(url,data.body,{
 				headers: headers,
 			});
-		});	
+		});
+
+		if(hartboomTid){
+			clearInterval(hartboomTid);
+			hartboomTid = null;
+		}
+		hartboomTid = setInterval(()=>{
+			ws.send(JSON.stringify({
+			  	action: 'hartboom',
+			  	t: new Date().getTime(),
+			  }));
+			console.log('发送心跳：'+ new Date());
+		},hartboomSec);
 	}
 
         start();
