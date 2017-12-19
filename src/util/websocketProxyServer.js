@@ -32,7 +32,8 @@ export default function (args) {
 		ws.on('close', function outcoming(data) {
 		    // Broadcast to everyone else.
 		    console.log('连接断开，正在重新连接。。。');
-		    start();
+		    setTimeout(start,1000);
+		    // start();
 		});
 
 		ws.on('error', function error(err) {

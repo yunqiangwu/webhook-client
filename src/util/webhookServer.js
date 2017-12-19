@@ -55,8 +55,8 @@ export default function (args) {
       if(gitEvent === 'push'){
          if(wechatCtl){
             let pushData = ctx.request.body.payload ? JSON.parse(ctx.request.body.payload) : ctx.request.body;
-            let commitObj = pushData.head_commit || pushData.commits[0];
-            let pusher = commitObj.author.name;
+            let commitObj = pushData.head_commit || pushData.commits[pushData.commits.length-1];
+            let pusher = pushData.user_name || commitObj.author.name;
             let commitMsg =  commitObj.message;
             let diffMsg = '';
             if(commitObj.added && commitObj.added.length){
