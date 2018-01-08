@@ -7,6 +7,7 @@ let hartboomTid = null;
 let hartboomSec = 60000;
 let errTryCount = 0;
 const errTryCountLen = 10;
+let isConnect = false;
 
 export default function (args) {
 
@@ -32,6 +33,7 @@ export default function (args) {
 				repository,
 		  	},
 		  }));
+		  isConnect = true;
 		});
 
 		ws.on('close', function outcoming(data) {
@@ -73,6 +75,10 @@ export default function (args) {
 			hartboomTid = null;
 		}
 		hartboomTid = setInterval(()=>{
+			if(!isConnect){
+				console.log('还没有连接服务器：'+ new Date());
+				return;
+			}
 			ws.send(JSON.stringify({
 			  	action: 'hartboom',
 			  	t: new Date().getTime(),
