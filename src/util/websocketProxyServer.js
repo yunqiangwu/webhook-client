@@ -37,6 +37,7 @@ export default function (args) {
 		});
 
 		ws.on('close', function outcoming(data) {
+			isConnect = false;
 		    // Broadcast to everyone else.
 		    console.log('连接断开，正在重新连接。。。');
 		    if(hartboomTid){
@@ -48,6 +49,7 @@ export default function (args) {
 		});
 
 		ws.on('error', function error(err) {
+			isConnect = false;
 			errTryCount++;
 		  console.log('连接服务器失败',err);
 		  if(hartboomTid){
