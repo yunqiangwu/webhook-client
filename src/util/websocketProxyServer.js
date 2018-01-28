@@ -6,7 +6,7 @@ const qs = require('querystring');
 let hartboomTid = null;
 let hartboomSec = 60000;
 let errTryCount = 0;
-const errTryCountLen = 10;
+const errTryCountLen = 20;
 let isConnect = false;
 
 export default function (args) {
