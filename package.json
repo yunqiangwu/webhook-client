@@ -14,8 +14,7 @@
   },
   "files": [
     "bin",
-    "lib",
-    "package.json"
+    "lib"
   ],
   "devDependencies": {
     "babel-cli": "*",
