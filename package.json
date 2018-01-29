@@ -1,7 +1,7 @@
 {
   "name": "webhook-client",
   "description": "auto pull and robot of weixin qq and  auto restart deploy server",
-  "version": "0.5.0",
+  "version": "0.5.2",
   "main": "lib/index.js",
   "author": "yunqiangwu",
   "repository": "yunqiangwu/webhook-client",
@@ -15,7 +15,7 @@
   "files": [
     "bin",
     "lib",
-    "public"
+    "package.json"
   ],
   "devDependencies": {
     "babel-cli": "*",
